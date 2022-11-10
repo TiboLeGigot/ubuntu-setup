@@ -19,13 +19,8 @@ echo Oh My Zsh installé avec le thème agnoster
 
 ## Configuration git
 echo "Configuration de Git"
-mail="t.jeannequin@gmail.com"
-name="Thibault"
-
-if [ "$automated" = false ]; then
-    read -p "Entrer votre mail : " mail
-    read -p "Entrer votre nom : " name
-fi
+read -p "Entrer votre mail : " mail
+read -p "Entrer votre nom : " name
 
 git config --global user.email "$mail"
 git config --global user.name "$name"
@@ -73,11 +68,7 @@ fi
 brave="Brave Browser"
 
 install_brave() {
-    echo Installation de $brave...
-    sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
-    echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main" | sudo tee /etc/apt/sources.list.d/brave-browser-release.list
-    sudo apt update
-    sudo apt install brave-browser
+
 }
 
 if [ "$automated" = false ]; then
@@ -89,7 +80,6 @@ if [ "$automated" = false ]; then
 else
     install_brave
 fi
-
 
 # Composer
 composer="composer"
@@ -144,7 +134,6 @@ if [ "$automated" = false ]; then
 else
     install_symfony
 fi
-
 
 # Docker
 docker="docker"
