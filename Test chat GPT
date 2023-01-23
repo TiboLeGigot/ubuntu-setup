@@ -1,0 +1,226 @@
+#!/bin/bash
+
+############### V1 ##############
+## Prompt: Help me write a bash script that automate the soft installations on a fresh ubuntu 22.04, i want git, docker, brave browser, vscode, zsh, oh-my-zsh with powerlevel10k and the following plugins :   git
+##  docker
+##  zsh-autosuggestions
+##  sudo
+##  copyfile
+##  dirhistory, then i want 
+
+# Update package list
+sudo apt-get update
+
+# Install Git
+sudo apt-get install git -y
+
+# Install Docker
+sudo apt-get install docker.io -y
+
+# Install Brave Browser
+curl -s https://brave-browser-apt-release.s3.brave.com/brave-core.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -
+echo "deb [arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main" | sudo tee /etc/apt/sources.list.d/brave-browser-release.list
+sudo apt-get update
+sudo apt-get install brave-browser -y
+
+# Install Visual Studio Code
+curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
+sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
+sudo apt-get update
+sudo apt-get install code -y
+
+# Install Zsh and Oh-My-Zsh
+sudo apt-get install zsh -y
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+# Install Powerlevel10k
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/themes/powerlevel10k
+
+# Install Zsh Plugins
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+git clone https://github.com/zsh-users/zsh-sudo ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-sudo
+git clone https://github.com/MichaelAquilina/zsh-copyfile ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-copyfile
+git clone https://github.com/MichaelAquilina/zsh-dirhistory ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-dirhistory
+
+# Update .zshrc to use powerlevel10k theme and plugins
+echo "
+# Use powerlevel10k theme
+ZSH_THEME='powerlevel10k/powerlevel10k'
+
+# Use zsh-autosuggestions plugin
+plugins=(git docker zsh-autosuggestions zsh-sudo zsh-copyfile zsh-dirhistory)
+" >> ~/.zshrc
+
+
+############### V2 ##############
+## Prompt : Can you refactor it in the most maintanable and readable way
+
+#!/bin/bash
+
+# Function to install a package
+install_package() {
+    package=$1
+    echo "Installing $package"
+    sudo apt-get install $package -y
+}
+
+# Function to add PPA
+add_ppa() {
+    ppa=$1
+    echo "Adding PPA: $ppa"
+    curl -s $ppa | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -
+    echo "deb [arch=amd64] $ppa stable main" | sudo tee /etc/apt/sources.list.d/brave-browser-release.list
+    sudo apt-get update
+}
+
+# Update package list
+sudo apt-get update
+
+# Installing packages
+install_package git
+install_package docker.io
+install_package zsh
+install_package code
+
+# Adding Brave browser PPA
+add_ppa https://brave-browser-apt-release.s3.brave.com/brave-core.asc
+install_package brave-browser
+
+# Adding Visual Studio Code PPA
+curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
+sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
+sudo apt-get update
+
+# Install Oh-My-Zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+# Install Powerlevel10k
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/themes/powerlevel10k
+
+# Install Zsh Plugins
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+git clone https://github.com/zsh-users/zsh-sudo ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-sudo
+git clone https://github.com/MichaelAquilina/zsh-copyfile ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-copyfile
+git clone https://github.com/MichaelAquilina/zsh-dirhistory ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-dirhistory
+
+# Update .zshrc to use powerlevel10k theme and plugins
+echo "
+# Use powerlevel10k theme
+ZSH_THEME='powerlevel10k/powerlevel10k'
+
+# Use zsh-autosuggestions plugin
+plugins=(git docker zsh-autosuggestions zsh-sudo zsh-copyfile zsh-dirhistory)
+
+
+############### V3 ###################
+## Prompt: add progress bars to the download and install process, with the color green and a convenient sentence output to follow the script steps
+
+#!/bin/bash
+
+# Function to install a package
+install_package() {
+    package=$1
+    echo -e "\033[32mInstalling $package \033[0m"
+    sudo apt-get install -y $package  > /dev/null 2>&1 &
+    pid=$!
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        echo -ne "\033[32m#\033[0m"
+        sleep 1;
+    done
+    echo -e "\033[32m $package installed successfully!\033[0m"
+}
+
+# Function to add PPA
+add_ppa() {
+    ppa=$1
+    echo -e "\033[32mAdding PPA: $ppa \033[0m"
+    curl -s $ppa | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -
+    echo "deb [arch=amd64] $ppa stable main" | sudo tee /etc/apt/sources.list.d/brave-browser-release.list
+    sudo apt-get update
+}
+
+# Update package list
+echo -e "\033[32mUpdating package list\033[0m"
+sudo apt-get update > /dev/null 2>&1 &
+pid=$!
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        echo -ne "\033[32m#\033[0m"
+        sleep 1;
+    done
+echo -e "\033[32m package list updated successfully!\033[0m"
+
+# Installing packages
+install_package git
+install_package docker.io
+install_package zsh
+install_package code
+
+# Adding Brave browser PPA
+add_ppa https://brave-browser-apt-release.s3.brave.com/brave-core.asc
+install_package brave-browser
+
+# Adding Visual Studio Code PPA
+curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
+sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
+sudo apt-get update
+
+# Install Oh-My-Zsh
+echo -e "\033[32mInstalling Oh-My-Zsh\033[0m"
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"  > /dev/null 2>&1 &
+pid=$!
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        echo -ne "\033[32m#\033[0m"
+        sleep 1;
+    done
+echo -e "\033[32m Oh-My-Zsh installed successfully!\033[0m"
+
+# Install Powerlevel10k
+echo -e "\033[32Installing Powerlevel10k\033[0m"
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/themes/powerlevel10k > /dev/null 2>&1 &
+pid=$!
+while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+echo -ne "\033[32m#\033[0m"
+sleep 1;
+done
+echo -e "\033[32m Powerlevel10k installed successfully!\033[0m"
+
+Install Zsh Plugins
+echo -e "\033[32mInstalling Zsh Plugins\033[0m"
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-/.oh-my-zsh/custom}/plugins/zsh-autosuggestions > /dev/null 2>&1 &
+pid=$!
+while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+echo -ne "\033[32m#\033[0m"
+sleep 1;
+done
+git clone https://github.com/zsh-users/zsh-sudo ${ZSH_CUSTOM:-/.oh-my-zsh/custom}/plugins/zsh-sudo > /dev/null 2>&1 &
+pid=$!
+while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+echo -ne "\033[32m#\033[0m"
+sleep 1;
+done
+git clone https://github.com/MichaelAquilina/zsh-copyfile ${ZSH_CUSTOM:-/.oh-my-zsh/custom}/plugins/zsh-copyfile > /dev/null 2>&1 &
+pid=$!
+while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+echo -ne "\033[32m#\033[0m"
+sleep 1;
+done
+git clone https://github.com/MichaelAquilina/zsh-dirhistory ${ZSH_CUSTOM:-/.oh-my-zsh/custom}/plugins/zsh-dirhistory > /dev/null 2>&1 &
+pid=$!
+while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+echo -ne "\033[32m#\033[0m"
+sleep 1;
+done
+echo -e "\033[32m Zsh Plugins installed successfully!\033[0m"
+
+Update .zshrc to use powerlevel10k theme and plugins
+echo "
+
+Use powerlevel10k theme
+ZSH_THEME='powerlevel10k/powerlevel10k'
+
+Use zsh-autosuggestions plugin
+plugins=(git docker zsh-autosuggestions zsh-sudo zsh-copyfile zsh-dirhistory)
+" >> ~/.zshrc
